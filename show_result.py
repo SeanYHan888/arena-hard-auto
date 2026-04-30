@@ -230,12 +230,12 @@ if __name__ == "__main__":
     parser.add_argument("--category", "-c", nargs="+", default=['hard_prompt'])
     args = parser.parse_args()
     
-    battles = load_judgments(args.judge_names, args.benchmark)
+    all_battles = load_judgments(args.judge_names, args.benchmark)
     
     for category in args.category:
-        assert category in battles.category.unique(), f"Invalid category: {category}"
+        assert category in all_battles.category.unique(), f"Invalid category: {category}"
         
-        battles = battles[battles.category == category].reset_index(drop=True)
+        battles = all_battles[all_battles.category == category].reset_index(drop=True)
         
         if args.control_features:
             print(f"INFO: Control features: {args.control_features}")

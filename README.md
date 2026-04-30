@@ -140,8 +140,9 @@ For older leaderboards, such as Arena-Hard-v0.1, see [past-leaderboards](/misc/p
 ```
 git clone https://github.com/lmarena/arena-hard-auto.git
 cd arena-hard
-pip install -r requirements.txt
-pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthropic sdk)
+uv sync
+# Optional provider SDKs (e.g. anthropic / mistral / cohere)
+uv sync --extra providers
 ```
 
 ## Download dataset
@@ -155,7 +156,7 @@ We have pre-generated many popular models answers and judgments. You can browse 
 
 Then run
 ```console
-> python show_result.py
+> uv run python show_result.py
                                       Model  Scores (%)         CI (%)
 0                             o3-2025-04-16        87.6  (-0.8 / +1.0)
 1                   o4-mini-2025-04-16-high        82.7  (-1.4 / +1.3)
@@ -178,7 +179,7 @@ In `config/gen_answer_config.yaml`, add your model name in `model_list`.
 
 Run the command to generate answers:
 ```console
-> python gen_answer.py
+> uv run python gen_answer.py
 ```
 
 Caching feature is implemented. The code will skip generating an answer when there is already an existing answer/judgment to the same prompt (this feature is not supported for built-in SGLang server).
@@ -210,7 +211,7 @@ max_tokens: 32000
 
 Run the command to generate judgments:
 ```console
-> python gen_judgment.py
+> uv run python gen_judgment.py
 ```
 
 For Ensemble-as-Judges, we suggest inferencing both judges independently and we will aggregrate the results when displaying leaderboard for you (see step 4).
@@ -220,18 +221,18 @@ Judgment caching is also implemented. It will skip generating judgments that has
 ### Step 4. Show result
 Output model win rates for **Arena-Hard-v2.0-Preview (Hard Prompt, Style Control, GPT-4.1 as Judge)**:
 ```console
-> python show_result.py --judge-names gpt-4.1 --control-features markdown length
+> uv run python show_result.py --judge-names gpt-4.1 --control-features markdown length
 ```
 
 Output model win rates for **Arena-Hard-v2.0-Preview (Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges)**:
 ```console
-> python show_result.py --judge-names gpt-4.1 gemini-2.5 --category creative_writing
+> uv run python show_result.py --judge-names gpt-4.1 gemini-2.5 --category creative_writing
 ```
 
 ### Step 5. Benchmark Viewer
 You can review answers and judgment results using our gradio script (`gradio>=5.25.2`).
 ```console
-> python qa_browser.py --share
+> uv run python qa_browser.py --share
 ```
 
 ## Style Control

@@ -1,0 +1,28 @@
+[project]
+name = "arena-hard-auto"
+version = "0.1.0"
+description = "Automatic evaluation pipeline for Arena-Hard benchmarks"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "boto3",
+    "gradio==5.25.2",
+    "numpy",
+    "openai",
+    "pandas",
+    "plotly",
+    "scikit-learn",
+    "shortuuid",
+    "tiktoken",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+providers = [
+    "anthropic",
+    "cohere",
+    "mistralai",
+]
+
+[tool.uv]
+package = false
