@@ -134,12 +134,20 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
+            request_kwargs = {
+                "model": model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if "stop" in kwargs and kwargs["stop"]:
+                request_kwargs["stop"] = kwargs["stop"]
+            if "extra_body" in kwargs and kwargs["extra_body"]:
+                request_kwargs["extra_body"] = kwargs["extra_body"]
+
             completion = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                )
+                **request_kwargs,
+            )
             output = {
                 "answer": completion.choices[0].message.content
             }
@@ -147,11 +155,14 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         except openai.RateLimitError as e:
             print(type(e), e)
             time.sleep(API_RETRY_SLEEP)
+        except (openai.APIConnectionError, openai.InternalServerError) as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
         except openai.BadRequestError as e:
             print(messages)
             print(type(e), e)
             break
-        except KeyError:
+        except KeyError as e:
             print(type(e), e)
             break
     
@@ -172,11 +183,17 @@ def chat_completion_openai_thinking(model, messages, api_dict=None, **kwargs):
     output = API_ERROR_OUTPUT
     for i in range(API_MAX_RETRY):
         try:
-            completion = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                reasoning_effort=kwargs['reasoning_effort'] if 'reasoning_effort' in kwargs else 'medium',
-            )
+            request_kwargs = {
+                "model": model,
+                "messages": messages,
+                "reasoning_effort": kwargs['reasoning_effort'] if 'reasoning_effort' in kwargs else 'medium',
+            }
+            if "stop" in kwargs and kwargs["stop"]:
+                request_kwargs["stop"] = kwargs["stop"]
+            if "extra_body" in kwargs and kwargs["extra_body"]:
+                request_kwargs["extra_body"] = kwargs["extra_body"]
+
+            completion = client.chat.completions.create(**request_kwargs)
             output = {
                 "answer": completion.choices[0].message.content
             }
@@ -184,10 +201,14 @@ def chat_completion_openai_thinking(model, messages, api_dict=None, **kwargs):
         except openai.RateLimitError as e:
             print(type(e), e)
             time.sleep(API_RETRY_SLEEP)
+        except (openai.APIConnectionError, openai.InternalServerError) as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
         except openai.BadRequestError as e:
             print(messages)
             print(type(e), e)
-        except KeyError:
+            break
+        except KeyError as e:
             print(type(e), e)
             break
     

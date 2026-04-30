@@ -20,14 +20,26 @@ from utils.judge_utils import JUDGE_SETTINGS
 
 def get_score(judgment, patterns):
     import re
+    valid_scores = {
+        "A>B", "A>>B", "A=B", "A<<B", "A<B",
+        "B>A", "B>>A", "B=A", "B<<A", "B<A",
+    }
+    all_matches = []
     for pattern in patterns:
         pattern = re.compile(pattern)
         
         matches = pattern.findall(judgment.upper())
         matches = [m for m in matches if m != ""]
+        all_matches.extend(matches)
         
         if len(set(matches)) > 0:
-            return matches[-1].strip("\n")
+            valid_matches = [m.strip("\n") for m in matches if m.strip("\n") in valid_scores]
+            if valid_matches:
+                return valid_matches[-1]
+
+    valid_matches = [m.strip("\n") for m in all_matches if m.strip("\n") in valid_scores]
+    if valid_matches:
+        return valid_matches[-1]
     return None
 
 

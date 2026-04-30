@@ -9,6 +9,17 @@ MAX_TOKENS="8196"
 LLAMA_MAX_TOKENS="2048"
 PARALLEL="8"
 READY_TIMEOUT="900"
+SANITY_RETRIES="2"
+SANITY_MIN_CHARS="16"
+STOP_SEQUENCES='["\nuser\n", "\nassistant\n", "\nsystem\n", "<|eot_id|>", "<|im_end|>", "<|end_of_text|>", "### Instruction:"]'
+
+VLLM_EXTRA_ARGS=()
+if [[ "${TRUST_REMOTE_CODE:-1}" == "1" ]]; then
+  VLLM_EXTRA_ARGS+=(--trust-remote-code)
+fi
+if [[ -n "${CHAT_TEMPLATE:-}" ]]; then
+  VLLM_EXTRA_ARGS+=(--chat-template "${CHAT_TEMPLATE}")
+fi
 
 mkdir -p logs
 
@@ -222,6 +233,9 @@ for spec in "${models[@]}"; do
   fi
 
   echo "=== Serving ${repo} as ${alias} ==="
+  if [[ "${repo}" == *"-base-"* ]]; then
+    echo "WARNING: ${repo} looks like a base checkpoint. Verify its chat template before trusting eval scores."
+  fi
 
   cat > config/gen_answer_single.yaml <<YAML
 bench_name: ${BENCH}
@@ -237,6 +251,11 @@ ${alias}:
   parallel: ${PARALLEL}
   max_tokens: ${model_max_tokens}
   temperature: 0.0
+  stop: ${STOP_SEQUENCES}
+  sanitize_output: true
+  sanity_check: true
+  sanity_max_retries: ${SANITY_RETRIES}
+  sanity_min_chars: ${SANITY_MIN_CHARS}
 YAML
 
   "${VLLM_CMD[@]}" serve "${repo}" \
@@ -245,6 +264,7 @@ YAML
     --port "${PORT}" \
     --api-key "${API_KEY}" \
     --tensor-parallel-size "${TP}" \
+    "${VLLM_EXTRA_ARGS[@]}" \
     > "logs/${alias}.vllm.log" 2>&1 &
   VLLM_PID=$!
 

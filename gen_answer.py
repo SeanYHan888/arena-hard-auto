@@ -21,6 +21,101 @@ from utils.completion import (
     API_ERROR_OUTPUT,
 )
 
+ROLE_MARKER_RE = re.compile(r"(^|\n)(user|assistant|system)\n", re.IGNORECASE)
+DEFAULT_SANITY_MIN_CHARS = 16
+
+
+def sanitize_answer_text(answer: str):
+    if not isinstance(answer, str):
+        return "", ["non_string_answer"]
+
+    cleaned = answer
+    cleanup_actions = []
+    stripped = cleaned.lstrip()
+    leading_ws = len(cleaned) - len(stripped)
+
+    if stripped.lower().startswith("<think>"):
+        close_idx = stripped.lower().find("</think>")
+        if close_idx != -1:
+            stripped = stripped[close_idx + len("</think>") :]
+            cleaned = cleaned[:leading_ws] + stripped
+            cleanup_actions.append("removed_leading_think_block")
+
+    cut_candidates = []
+    transcript_match = ROLE_MARKER_RE.search(cleaned)
+    if transcript_match:
+        cut_candidates.append((transcript_match.start(), "truncated_role_transcript"))
+
+    for marker, action in (
+        ("### Instruction:", "truncated_instruction_leak"),
+        ("<|assistant|>", "truncated_special_role_token"),
+        ("<|user|>", "truncated_special_role_token"),
+        ("<|system|>", "truncated_special_role_token"),
+    ):
+        marker_idx = cleaned.lower().find(marker.lower())
+        if marker_idx != -1:
+            cut_candidates.append((marker_idx, action))
+
+    if cut_candidates:
+        cut_idx, action = min(cut_candidates, key=lambda item: item[0])
+        cleaned = cleaned[:cut_idx]
+        cleanup_actions.append(action)
+
+    return cleaned.strip(), cleanup_actions
+
+
+def find_answer_flags(answer: str, settings: dict):
+    if not isinstance(answer, str):
+        return ["non_string_answer"]
+
+    flags = []
+    stripped = answer.strip()
+    min_chars = int(settings.get("sanity_min_chars", DEFAULT_SANITY_MIN_CHARS))
+
+    if not stripped:
+        flags.append("empty")
+    elif len(stripped) < min_chars:
+        flags.append("too_short")
+
+    lowered = stripped.lower()
+    if "<think>" in lowered or "</think>" in lowered:
+        flags.append("contains_think_tag")
+    if ROLE_MARKER_RE.search(stripped):
+        flags.append("contains_role_marker")
+
+    for marker, flag in (
+        ("### Instruction:", "contains_instruction_leak"),
+        ("<|assistant|>", "contains_special_role_token"),
+        ("<|user|>", "contains_special_role_token"),
+        ("<|system|>", "contains_special_role_token"),
+    ):
+        if marker.lower() in lowered:
+            flags.append(flag)
+
+    for marker in settings.get("sanity_disallowed_substrings", []):
+        if marker.lower() in lowered:
+            flags.append(f"contains_marker:{marker}")
+
+    return list(dict.fromkeys(flags))
+
+
+def dump_rejected_answer(answer_file: str, question: dict, raw_answer, cleaned_answer, flags, cleanup_actions, attempt):
+    reject_file = f"{answer_file}.rejects"
+    payload = {
+        "uid": question["uid"],
+        "model": model,
+        "attempt": attempt,
+        "flags": flags,
+        "cleanup_actions": cleanup_actions,
+        "raw_answer": raw_answer,
+        "cleaned_answer": cleaned_answer,
+        "tstamp": time.time(),
+    }
+
+    os.makedirs(os.path.dirname(reject_file), exist_ok=True)
+    with open(reject_file, "a", encoding="utf-8") as fout:
+        fout.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
 
 def get_answer(
     question: dict, answer_file: str, settings: dict
@@ -40,13 +135,68 @@ def get_answer(
         "api_dict": get_endpoint(settings["endpoints"]),
         "messages": messages,
     }
-    
-    
-    output = api_completion_func(**kwargs)
-        
-    if output is API_ERROR_OUTPUT:
+
+    sanitize_output = bool(settings.get("sanitize_output", False))
+    sanity_check = bool(settings.get("sanity_check", False))
+    max_attempts = 1 + int(settings.get("sanity_max_retries", 0)) if sanity_check else 1
+
+    output = None
+    quality_flags = []
+    cleanup_actions = []
+    last_rejection = None
+
+    for attempt in range(1, max_attempts + 1):
+        candidate = api_completion_func(**kwargs)
+        if candidate is API_ERROR_OUTPUT:
+            last_rejection = {
+                "raw_answer": None,
+                "cleaned_answer": None,
+                "flags": ["api_error"],
+                "cleanup_actions": [],
+                "attempt": attempt,
+            }
+            continue
+
+        raw_answer = candidate.get("answer", "")
+        cleaned_answer = raw_answer
+        candidate_cleanup_actions = []
+        if sanitize_output:
+            cleaned_answer, candidate_cleanup_actions = sanitize_answer_text(raw_answer)
+            candidate = candidate | {"answer": cleaned_answer}
+
+        candidate_flags = find_answer_flags(cleaned_answer, settings) if (sanitize_output or sanity_check) else []
+        if sanity_check and candidate_flags:
+            print(
+                f"[sanity] rejected answer for model={model} uid={question['uid']} "
+                f"attempt={attempt}/{max_attempts} flags={candidate_flags}"
+            )
+            last_rejection = {
+                "raw_answer": raw_answer,
+                "cleaned_answer": cleaned_answer,
+                "flags": candidate_flags,
+                "cleanup_actions": candidate_cleanup_actions,
+                "attempt": attempt,
+            }
+            continue
+
+        output = candidate
+        quality_flags = candidate_flags
+        cleanup_actions = candidate_cleanup_actions
+        break
+
+    if output is None:
+        if last_rejection is not None:
+            dump_rejected_answer(
+                answer_file,
+                question,
+                last_rejection["raw_answer"],
+                last_rejection["cleaned_answer"],
+                last_rejection["flags"],
+                last_rejection["cleanup_actions"],
+                last_rejection["attempt"],
+            )
         return
-    
+
     messages.append({"role": "assistant", "content": output})
 
     # Dump answers
@@ -62,6 +212,14 @@ def get_answer(
     metadata = {
         "token_len": len(encoding.encode(output['answer'], disallowed_special=()))
     }
+    if sanitize_output or sanity_check:
+        metadata["answer_quality"] = {
+            "sanity_check": sanity_check,
+            "sanitize_output": sanitize_output,
+            "passed": len(quality_flags) == 0,
+            "flags": quality_flags,
+            "cleanup_actions": cleanup_actions,
+        }
     ans["metadata"] = metadata | count_markdown_elements(
         remove_pattern(
             output['answer'], 
