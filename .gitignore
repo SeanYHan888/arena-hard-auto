@@ -13,3 +13,6 @@ outputs8/
 outputs9/
 outputs10/
 outputs11/
+data/*/model_answer/debug*/
+data/*/model_judgment/*/debug*/
+data/*/debug_inference/

@@ -1,0 +1,27 @@
+bench_name: arena-hard-v2.0
+
+# Keep debug answers isolated from normal runs.
+answer_dir: data/arena-hard-v2.0/model_answer/debug_v2_gpt41
+
+model_list:
+  - llama3_8b_new_dpo
+  - llama3_8b_simpo
+  - qwen3_8b_simpo
+  - llama3_8b_kto
+  - qwen3_8b_margin_dpo
+  - llama3_8b_margin_dpo
+  - llama3_8b_beta_dpo
+  - qwen3_8b_beta_dpo
+  - qwen3_8b_sft
+  - llama3_8b_sft
+
+# Small cross-section of v2.0 prompts:
+# - 5 hard prompts
+# - 1 creative writing prompt
+question_uids:
+  - 2edbb5f36f5b42be
+  - ec71c09662a64365
+  - d5cdf24c4e614beb
+  - dfc9be7c176d46bb
+  - 666d2acdd7d64e17
+  - d657b1fb82b141da

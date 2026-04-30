@@ -4,6 +4,7 @@ import os
 import re
 import time
 import concurrent.futures
+import threading
 
 import tiktoken
 import shortuuid
@@ -23,6 +24,37 @@ from utils.completion import (
 
 ROLE_MARKER_RE = re.compile(r"(^|\n)(user|assistant|system)\n", re.IGNORECASE)
 DEFAULT_SANITY_MIN_CHARS = 16
+DEBUG_DUMP_LOCK = threading.Lock()
+
+
+def filter_questions(questions: list[dict], config: dict):
+    filtered = questions
+
+    categories = config.get("question_categories")
+    if categories:
+        category_set = set(categories)
+        filtered = [
+            question for question in filtered
+            if question.get("category") in category_set or question.get("subcategory") in category_set
+        ]
+
+    question_uids = config.get("question_uids")
+    if question_uids:
+        question_by_uid = {question["uid"]: question for question in filtered}
+        missing_uids = [uid for uid in question_uids if uid not in question_by_uid]
+        if missing_uids:
+            print(f"Warning: requested question_uids were not found: {missing_uids}")
+        filtered = [question_by_uid[uid] for uid in question_uids if uid in question_by_uid]
+
+    question_offset = int(config.get("question_offset", 0) or 0)
+    if question_offset:
+        filtered = filtered[question_offset:]
+
+    question_limit = config.get("question_limit")
+    if question_limit is not None:
+        filtered = filtered[: int(question_limit)]
+
+    return filtered
 
 
 def sanitize_answer_text(answer: str):
@@ -113,8 +145,36 @@ def dump_rejected_answer(answer_file: str, question: dict, raw_answer, cleaned_a
     }
 
     os.makedirs(os.path.dirname(reject_file), exist_ok=True)
-    with open(reject_file, "a", encoding="utf-8") as fout:
-        fout.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    with DEBUG_DUMP_LOCK:
+        with open(reject_file, "a", encoding="utf-8") as fout:
+            fout.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
+
+def dump_debug_attempt(answer_file: str, question: dict, messages: list, settings: dict, attempt: int, max_attempts: int, raw_answer, cleaned_answer, flags, cleanup_actions, accepted: bool):
+    if not settings.get("debug_dump_attempts"):
+        return
+
+    debug_dir = settings.get("debug_dump_dir") or os.path.join(os.path.dirname(answer_file), "debug_attempts")
+    os.makedirs(debug_dir, exist_ok=True)
+    debug_file = os.path.join(debug_dir, f"{model}.attempts.jsonl")
+    payload = {
+        "uid": question["uid"],
+        "category": question.get("category"),
+        "model": model,
+        "attempt": attempt,
+        "max_attempts": max_attempts,
+        "accepted": accepted,
+        "flags": flags,
+        "cleanup_actions": cleanup_actions,
+        "messages": messages,
+        "raw_answer": raw_answer,
+        "cleaned_answer": cleaned_answer,
+        "tstamp": time.time(),
+    }
+
+    with DEBUG_DUMP_LOCK:
+        with open(debug_file, "a", encoding="utf-8") as fout:
+            fout.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
 
 def get_answer(
@@ -148,6 +208,19 @@ def get_answer(
     for attempt in range(1, max_attempts + 1):
         candidate = api_completion_func(**kwargs)
         if candidate is API_ERROR_OUTPUT:
+            dump_debug_attempt(
+                answer_file,
+                question,
+                messages,
+                settings,
+                attempt,
+                max_attempts,
+                raw_answer=None,
+                cleaned_answer=None,
+                flags=["api_error"],
+                cleanup_actions=[],
+                accepted=False,
+            )
             last_rejection = {
                 "raw_answer": None,
                 "cleaned_answer": None,
@@ -165,6 +238,19 @@ def get_answer(
             candidate = candidate | {"answer": cleaned_answer}
 
         candidate_flags = find_answer_flags(cleaned_answer, settings) if (sanitize_output or sanity_check) else []
+        dump_debug_attempt(
+            answer_file,
+            question,
+            messages,
+            settings,
+            attempt,
+            max_attempts,
+            raw_answer=raw_answer,
+            cleaned_answer=cleaned_answer,
+            flags=candidate_flags,
+            cleanup_actions=candidate_cleanup_actions,
+            accepted=not (sanity_check and candidate_flags),
+        )
         if sanity_check and candidate_flags:
             print(
                 f"[sanity] rejected answer for model={model} uid={question['uid']} "
@@ -246,7 +332,8 @@ if __name__ == "__main__":
     config = make_config(args.config_file)
     endpoints = make_config(args.endpoint_file)
 
-    existing_answer = load_model_answers(os.path.join("data", config["bench_name"], "model_answer"))
+    answer_dir = config.get("answer_dir", os.path.join("data", config["bench_name"], "model_answer"))
+    existing_answer = load_model_answers(answer_dir)
     
     print(config)
 
@@ -255,9 +342,10 @@ if __name__ == "__main__":
         endpoint_settings = endpoints[model]
 
         question_file = os.path.join("data", config["bench_name"], "question.jsonl")
-        questions = load_questions(question_file)
+        questions = filter_questions(load_questions(question_file), config)
+        print(f"Loaded {len(questions)} questions for model={model}")
 
-        answer_file = os.path.join("data", config["bench_name"], "model_answer", f"{model}.jsonl")
+        answer_file = os.path.join(answer_dir, f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
         if "parallel" in endpoint_settings:

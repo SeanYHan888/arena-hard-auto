@@ -1,0 +1,37 @@
+judge_model: gpt-4.1
+temperature: 0.0
+max_tokens: 16000
+
+bench_name: arena-hard-v2.0
+reference: null
+
+# Judge the debug answers without touching the normal v2.0 outputs.
+answer_dir: data/arena-hard-v2.0/model_answer/debug_v2_gpt41
+baseline_answer_dir: data/arena-hard-v2.0/model_answer
+judgment_output_dir: data/arena-hard-v2.0/model_judgment/gpt-4.1/debug_v2_gpt41
+
+regex_patterns:
+  - \[\[([AB<>=]+)\]\]
+  - \[([AB<>=]+)\]
+
+prompt_template: "<|User Prompt|>\n{QUESTION}\n\n<|The Start of Assistant A's Answer|>\n{ANSWER_A}\n<|The End of Assistant A's Answer|>\n\n<|The Start of Assistant B's Answer|>\n{ANSWER_B}\n<|The End of Assistant B's Answer|>"
+
+model_list:
+  - llama3_8b_new_dpo
+  - llama3_8b_simpo
+  - qwen3_8b_simpo
+  - llama3_8b_kto
+  - qwen3_8b_margin_dpo
+  - llama3_8b_margin_dpo
+  - llama3_8b_beta_dpo
+  - qwen3_8b_beta_dpo
+  - qwen3_8b_sft
+  - llama3_8b_sft
+
+question_uids:
+  - 2edbb5f36f5b42be
+  - ec71c09662a64365
+  - d5cdf24c4e614beb
+  - dfc9be7c176d46bb
+  - 666d2acdd7d64e17
+  - d657b1fb82b141da
