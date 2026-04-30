@@ -1,0 +1,26 @@
+llama3_8b_new_dpo:
+  model: llama3_8b_new_dpo
+  endpoints:
+    - api_base: http://127.0.0.1:8000/v1
+      api_key: token-abc123
+  api_type: openai
+  parallel: 1
+  max_tokens: 2048
+  temperature: 0.0
+  stop:
+    - "\nuser\n"
+    - "\nassistant\n"
+    - "\nsystem\n"
+    - "<|eot_id|>"
+    - "<|im_end|>"
+    - "<|end_of_text|>"
+    - "### Instruction:"
+  sanitize_output: true
+  sanity_check: true
+  sanity_max_retries: 2
+  sanity_min_chars: 16
+  sanity_disallowed_substrings:
+    - "ERSHEY"
+    - "GameObjectWithTag"
+  debug_dump_attempts: true
+  debug_dump_dir: data/arena-hard-v2.0/debug_inference

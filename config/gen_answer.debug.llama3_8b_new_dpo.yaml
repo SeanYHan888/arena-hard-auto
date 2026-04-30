@@ -1,0 +1,13 @@
+bench_name: arena-hard-v2.0
+answer_dir: data/arena-hard-v2.0/model_answer/debug_llama3_8b_new_dpo
+
+model_list:
+  - llama3_8b_new_dpo
+
+question_uids:
+  - 2edbb5f36f5b42be
+  - ec71c09662a64365
+  - d5cdf24c4e614beb
+  - dfc9be7c176d46bb
+  - 666d2acdd7d64e17
+  - d657b1fb82b141da
