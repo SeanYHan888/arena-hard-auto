@@ -150,6 +150,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         except openai.BadRequestError as e:
             print(messages)
             print(type(e), e)
+            break
         except KeyError:
             print(type(e), e)
             break
@@ -653,6 +654,10 @@ def chat_completion_meta(model, messages, temperature, max_tokens, api_dict, **k
 
 def reorg_answer_file(answer_file):
     """Sort by question id and de-duplication"""
+    if not os.path.exists(answer_file):
+        print(f"Skip reorg: answer file not found: {answer_file}")
+        return
+
     answers = {}
     with open(answer_file, "r") as fin:
         for l in fin:

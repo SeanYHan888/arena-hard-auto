@@ -6,6 +6,7 @@ PORT="8000"
 API_KEY="token-abc123"
 TP="1"                    # adjust for your GPU count
 MAX_TOKENS="8196"
+LLAMA_MAX_TOKENS="2048"
 PARALLEL="8"
 READY_TIMEOUT="900"
 
@@ -215,12 +216,27 @@ for spec in "${models[@]}"; do
   alias="${spec%%=*}"
   repo="${spec#*=}"
 
+  model_max_tokens="${MAX_TOKENS}"
+  if [[ "${alias}" == llama3_8b_* ]]; then
+    model_max_tokens="${LLAMA_MAX_TOKENS}"
+  fi
+
   echo "=== Serving ${repo} as ${alias} ==="
 
   cat > config/gen_answer_single.yaml <<YAML
 bench_name: ${BENCH}
 model_list:
   - ${alias}
+YAML
+
+  cat > config/api_config.local.yaml <<YAML
+${alias}:
+  model: ${alias}
+  endpoints: [{api_base: "http://127.0.0.1:${PORT}/v1", api_key: "${API_KEY}"}]
+  api_type: openai
+  parallel: ${PARALLEL}
+  max_tokens: ${model_max_tokens}
+  temperature: 0.0
 YAML
 
   "${VLLM_CMD[@]}" serve "${repo}" \
