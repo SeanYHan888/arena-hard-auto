@@ -41,6 +41,8 @@ JUDGE_MODEL="${JUDGE_MODEL:-gpt-4.1}"
 JUDGE_ENDPOINT_FILE="${JUDGE_ENDPOINT_FILE:-config/api_config.yaml}"
 QUESTION_UIDS="${QUESTION_UIDS:-}"
 QUESTION_LIMIT="${QUESTION_LIMIT:-8}"
+LLAMA3_CHAT_TEMPLATE="${LLAMA3_CHAT_TEMPLATE:-templates/llama3_chat.jinja}"
+QWEN3_CHAT_TEMPLATE="${QWEN3_CHAT_TEMPLATE:-templates/qwen3_nonthinking_chat.jinja}"
 
 case "${ALIAS}" in
   llama3_8b_*)
@@ -166,8 +168,23 @@ VLLM_EXTRA_ARGS=()
 if [[ "${TRUST_REMOTE_CODE:-1}" == "1" ]]; then
   VLLM_EXTRA_ARGS+=(--trust-remote-code)
 fi
+
+AUTO_CHAT_TEMPLATE=""
 if [[ -n "${CHAT_TEMPLATE:-}" ]]; then
-  VLLM_EXTRA_ARGS+=(--chat-template "${CHAT_TEMPLATE}")
+  AUTO_CHAT_TEMPLATE="${CHAT_TEMPLATE}"
+else
+  case "${ALIAS}" in
+    llama3_8b_*)
+      AUTO_CHAT_TEMPLATE="${LLAMA3_CHAT_TEMPLATE}"
+      ;;
+    qwen3_8b_*)
+      AUTO_CHAT_TEMPLATE="${QWEN3_CHAT_TEMPLATE}"
+      ;;
+  esac
+fi
+
+if [[ -n "${AUTO_CHAT_TEMPLATE}" ]]; then
+  VLLM_EXTRA_ARGS+=(--chat-template "${AUTO_CHAT_TEMPLATE}")
 fi
 
 "${VLLM_CMD[@]}" serve "${REPO}" \

@@ -1,0 +1,13 @@
+{% if not add_generation_prompt is defined %}
+{% set add_generation_prompt = false %}
+{% endif %}
+{% for message in messages %}
+{% if message['role'] == 'assistant' %}
+{{ '<|im_start|>assistant\n<think>\n\n</think>\n\n' + (message['content'] | trim) + '<|im_end|>\n' }}
+{% else %}
+{{ '<|im_start|>' + message['role'] + '\n' + (message['content'] | trim) + '<|im_end|>\n' }}
+{% endif %}
+{% endfor %}
+{% if add_generation_prompt %}
+{{ '<|im_start|>assistant\n<think>\n\n</think>\n\n' }}
+{% endif %}

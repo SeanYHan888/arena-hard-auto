@@ -12,13 +12,12 @@ READY_TIMEOUT="900"
 SANITY_RETRIES="2"
 SANITY_MIN_CHARS="16"
 STOP_SEQUENCES='["\nuser\n", "\nassistant\n", "\nsystem\n", "<|eot_id|>", "<|im_end|>", "<|end_of_text|>", "### Instruction:"]'
+LLAMA3_CHAT_TEMPLATE="${LLAMA3_CHAT_TEMPLATE:-templates/llama3_chat.jinja}"
+QWEN3_CHAT_TEMPLATE="${QWEN3_CHAT_TEMPLATE:-templates/qwen3_nonthinking_chat.jinja}"
 
 VLLM_EXTRA_ARGS=()
 if [[ "${TRUST_REMOTE_CODE:-1}" == "1" ]]; then
   VLLM_EXTRA_ARGS+=(--trust-remote-code)
-fi
-if [[ -n "${CHAT_TEMPLATE:-}" ]]; then
-  VLLM_EXTRA_ARGS+=(--chat-template "${CHAT_TEMPLATE}")
 fi
 
 mkdir -p logs
@@ -234,7 +233,26 @@ for spec in "${models[@]}"; do
 
   echo "=== Serving ${repo} as ${alias} ==="
   if [[ "${repo}" == *"-base-"* ]]; then
-    echo "WARNING: ${repo} looks like a base checkpoint. Verify its chat template before trusting eval scores."
+    echo "WARNING: ${repo} looks like a base checkpoint. This script will auto-apply a family chat template unless CHAT_TEMPLATE overrides it."
+  fi
+
+  AUTO_CHAT_TEMPLATE=""
+  if [[ -n "${CHAT_TEMPLATE:-}" ]]; then
+    AUTO_CHAT_TEMPLATE="${CHAT_TEMPLATE}"
+  else
+    case "${alias}" in
+      llama3_8b_*)
+        AUTO_CHAT_TEMPLATE="${LLAMA3_CHAT_TEMPLATE}"
+        ;;
+      qwen3_8b_*)
+        AUTO_CHAT_TEMPLATE="${QWEN3_CHAT_TEMPLATE}"
+        ;;
+    esac
+  fi
+
+  SERVE_EXTRA_ARGS=("${VLLM_EXTRA_ARGS[@]}")
+  if [[ -n "${AUTO_CHAT_TEMPLATE}" ]]; then
+    SERVE_EXTRA_ARGS+=(--chat-template "${AUTO_CHAT_TEMPLATE}")
   fi
 
   cat > config/gen_answer_single.yaml <<YAML
@@ -264,7 +282,7 @@ YAML
     --port "${PORT}" \
     --api-key "${API_KEY}" \
     --tensor-parallel-size "${TP}" \
-    "${VLLM_EXTRA_ARGS[@]}" \
+    "${SERVE_EXTRA_ARGS[@]}" \
     > "logs/${alias}.vllm.log" 2>&1 &
   VLLM_PID=$!
 

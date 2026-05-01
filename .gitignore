@@ -1,4 +1,5 @@
 config/api_config.local.yaml
+config/generated/
 logs/
 utils/__pycache__/
 leaderboard/
