@@ -1,0 +1,169 @@
+# OpenAI-compatible local endpoint config for SimPO collection answer generation.
+# Serve one checkpoint with vLLM/SGLang using the matching alias as served-model-name,
+# then run gen_answer.py with config/simpo/gen_answer_v0.1.yaml and this file.
+#
+# Defaults are conservative for Arena-Hard-v0.1 answer generation:
+# - deterministic decoding
+# - bounded generation
+# - common chat-template leakage stops
+# - answer sanitation and retry checks enabled
+gemma_2_9b_it_simpo:
+  model: gemma_2_9b_it_simpo
+  endpoints: [{api_base: "http://127.0.0.1:8000/v1", api_key: "token-abc123"}]
+  api_type: openai
+  parallel: 8
+  max_tokens: 4096
+  temperature: 0.0
+  stop: &stop_sequences ["\nuser\n", "\nassistant\n", "\nsystem\n", "<|eot_id|>", "<|im_end|>", "<|end_of_text|>", "### Instruction:"]
+  sanitize_output: true
+  sanity_check: true
+  sanity_max_retries: 2
+  sanity_min_chars: 16
+gemma_2_9b_it_dpo:
+  <<: &local_defaults
+    endpoints: [{api_base: "http://127.0.0.1:8000/v1", api_key: "token-abc123"}]
+    api_type: openai
+    parallel: 8
+    max_tokens: 4096
+    temperature: 0.0
+    stop: *stop_sequences
+    sanitize_output: true
+    sanity_check: true
+    sanity_max_retries: 2
+    sanity_min_chars: 16
+  model: gemma_2_9b_it_dpo
+llama_3_base_8b_sft_ipo:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_ipo
+llama_3_base_8b_sft_dpo:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_dpo
+llama_3_base_8b_sft_kto:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_kto
+llama_3_base_8b_sft_orpo:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_orpo
+llama_3_base_8b_sft_rdpo:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_rdpo
+llama_3_base_8b_sft_simpo:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_simpo
+llama_3_base_8b_sft:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft
+llama_3_instruct_8b_simpo:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_simpo
+llama_3_instruct_8b_ipo:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_ipo
+llama_3_instruct_8b_kto:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_kto
+llama_3_instruct_8b_orpo:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_orpo
+llama_3_instruct_8b_rdpo:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_rdpo
+llama_3_instruct_8b_dpo:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_dpo
+mistral_7b_instruct_rdpo:
+  <<: *local_defaults
+  model: mistral_7b_instruct_rdpo
+mistral_7b_instruct_dpo:
+  <<: *local_defaults
+  model: mistral_7b_instruct_dpo
+mistral_7b_instruct_ipo:
+  <<: *local_defaults
+  model: mistral_7b_instruct_ipo
+mistral_7b_instruct_kto:
+  <<: *local_defaults
+  model: mistral_7b_instruct_kto
+mistral_7b_instruct_simpo:
+  <<: *local_defaults
+  model: mistral_7b_instruct_simpo
+mistral_7b_instruct_orpo:
+  <<: *local_defaults
+  model: mistral_7b_instruct_orpo
+mistral_7b_base_sft_ipo:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_ipo
+mistral_7b_base_sft_kto:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_kto
+mistral_7b_base_sft_dpo:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_dpo
+mistral_7b_base_sft_rdpo:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_rdpo
+mistral_7b_base_sft_simpo:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_simpo
+mistral_7b_base_sft_cpo:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_cpo
+mistral_7b_base_sft_rrhf:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_rrhf
+mistral_7b_base_sft_slic_hf:
+  <<: *local_defaults
+  model: mistral_7b_base_sft_slic_hf
+mistral_7b_instruct_cpo:
+  <<: *local_defaults
+  model: mistral_7b_instruct_cpo
+mistral_7b_instruct_rrhf:
+  <<: *local_defaults
+  model: mistral_7b_instruct_rrhf
+mistral_7b_instruct_slic_hf:
+  <<: *local_defaults
+  model: mistral_7b_instruct_slic_hf
+llama_3_base_8b_sft_cpo:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_cpo
+llama_3_base_8b_sft_rrhf:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_rrhf
+llama_3_base_8b_sft_slic_hf:
+  <<: *local_defaults
+  model: llama_3_base_8b_sft_slic_hf
+llama_3_instruct_8b_cpo:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_cpo
+llama_3_instruct_8b_rrhf:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_rrhf
+llama_3_instruct_8b_slic_hf:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_slic_hf
+llama_3_instruct_8b_rrhf_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_rrhf_v0_2
+llama_3_instruct_8b_slic_hf_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_slic_hf_v0_2
+llama_3_instruct_8b_dpo_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_dpo_v0_2
+llama_3_instruct_8b_ipo_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_ipo_v0_2
+llama_3_instruct_8b_cpo_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_cpo_v0_2
+llama_3_instruct_8b_kto_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_kto_v0_2
+llama_3_instruct_8b_orpo_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_orpo_v0_2
+llama_3_instruct_8b_rdpo_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_rdpo_v0_2
+llama_3_instruct_8b_simpo_v0_2:
+  <<: *local_defaults
+  model: llama_3_instruct_8b_simpo_v0_2

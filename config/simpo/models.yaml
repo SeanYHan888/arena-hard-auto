@@ -1,0 +1,149 @@
+# Hugging Face collection:
+# https://huggingface.co/collections/princeton-nlp/simpo-66500741a5a066eb7d445889
+#
+# This manifest intentionally includes only collection items whose repo type is
+# "model"; dataset repos in the same collection are excluded.
+collection_slug: princeton-nlp/simpo-66500741a5a066eb7d445889
+collection_title: SimPO
+models:
+  - alias: gemma_2_9b_it_simpo
+    repo: princeton-nlp/gemma-2-9b-it-SimPO
+    family: gemma
+  - alias: gemma_2_9b_it_dpo
+    repo: princeton-nlp/gemma-2-9b-it-DPO
+    family: gemma
+  - alias: llama_3_base_8b_sft_ipo
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-IPO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_dpo
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-DPO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_kto
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-KTO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_orpo
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-ORPO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_rdpo
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-RDPO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_simpo
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-SimPO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft
+    repo: princeton-nlp/Llama-3-Base-8B-SFT
+    family: llama3_base
+  - alias: llama_3_instruct_8b_simpo
+    repo: princeton-nlp/Llama-3-Instruct-8B-SimPO
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_ipo
+    repo: princeton-nlp/Llama-3-Instruct-8B-IPO
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_kto
+    repo: princeton-nlp/Llama-3-Instruct-8B-KTO
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_orpo
+    repo: princeton-nlp/Llama-3-Instruct-8B-ORPO
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_rdpo
+    repo: princeton-nlp/Llama-3-Instruct-8B-RDPO
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_dpo
+    repo: princeton-nlp/Llama-3-Instruct-8B-DPO
+    family: llama3_instruct
+  - alias: mistral_7b_instruct_rdpo
+    repo: princeton-nlp/Mistral-7B-Instruct-RDPO
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_dpo
+    repo: princeton-nlp/Mistral-7B-Instruct-DPO
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_ipo
+    repo: princeton-nlp/Mistral-7B-Instruct-IPO
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_kto
+    repo: princeton-nlp/Mistral-7B-Instruct-KTO
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_simpo
+    repo: princeton-nlp/Mistral-7B-Instruct-SimPO
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_orpo
+    repo: princeton-nlp/Mistral-7B-Instruct-ORPO
+    family: mistral_instruct
+  - alias: mistral_7b_base_sft_ipo
+    repo: princeton-nlp/Mistral-7B-Base-SFT-IPO
+    family: mistral_base
+  - alias: mistral_7b_base_sft_kto
+    repo: princeton-nlp/Mistral-7B-Base-SFT-KTO
+    family: mistral_base
+  - alias: mistral_7b_base_sft_dpo
+    repo: princeton-nlp/Mistral-7B-Base-SFT-DPO
+    family: mistral_base
+  - alias: mistral_7b_base_sft_rdpo
+    repo: princeton-nlp/Mistral-7B-Base-SFT-RDPO
+    family: mistral_base
+  - alias: mistral_7b_base_sft_simpo
+    repo: princeton-nlp/Mistral-7B-Base-SFT-SimPO
+    family: mistral_base
+  - alias: mistral_7b_base_sft_cpo
+    repo: princeton-nlp/Mistral-7B-Base-SFT-CPO
+    family: mistral_base
+  - alias: mistral_7b_base_sft_rrhf
+    repo: princeton-nlp/Mistral-7B-Base-SFT-RRHF
+    family: mistral_base
+  - alias: mistral_7b_base_sft_slic_hf
+    repo: princeton-nlp/Mistral-7B-Base-SFT-SLiC-HF
+    family: mistral_base
+  - alias: mistral_7b_instruct_cpo
+    repo: princeton-nlp/Mistral-7B-Instruct-CPO
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_rrhf
+    repo: princeton-nlp/Mistral-7B-Instruct-RRHF
+    family: mistral_instruct
+  - alias: mistral_7b_instruct_slic_hf
+    repo: princeton-nlp/Mistral-7B-Instruct-SLiC-HF
+    family: mistral_instruct
+  - alias: llama_3_base_8b_sft_cpo
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-CPO
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_rrhf
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-RRHF
+    family: llama3_base
+  - alias: llama_3_base_8b_sft_slic_hf
+    repo: princeton-nlp/Llama-3-Base-8B-SFT-SLiC-HF
+    family: llama3_base
+  - alias: llama_3_instruct_8b_cpo
+    repo: princeton-nlp/Llama-3-Instruct-8B-CPO
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_rrhf
+    repo: princeton-nlp/Llama-3-Instruct-8B-RRHF
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_slic_hf
+    repo: princeton-nlp/Llama-3-Instruct-8B-SLiC-HF
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_rrhf_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-RRHF-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_slic_hf_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-SLiC-HF-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_dpo_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-DPO-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_ipo_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-IPO-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_cpo_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-CPO-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_kto_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-KTO-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_orpo_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-ORPO-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_rdpo_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-RDPO-v0.2
+    family: llama3_instruct
+  - alias: llama_3_instruct_8b_simpo_v0_2
+    repo: princeton-nlp/Llama-3-Instruct-8B-SimPO-v0.2
+    family: llama3_instruct
