@@ -1,0 +1,13 @@
+bench_name: arena-hard-v0.1
+
+model_list:
+  - llama_3_base_8b_sft_cpo
+  - llama_3_base_8b_sft_rrhf
+  - llama_3_base_8b_sft_slic_hf
+  - llama_3_base_8b_sft_ipo
+  - llama_3_base_8b_sft_dpo
+  - llama_3_base_8b_sft_kto
+  - llama_3_base_8b_sft_orpo
+  - llama_3_base_8b_sft_rdpo
+  - llama_3_base_8b_sft_simpo
+  - llama_3_base_8b_sft
