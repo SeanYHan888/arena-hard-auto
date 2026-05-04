@@ -18,3 +18,4 @@ data/*/model_answer/debug*/
 data/*/model_judgment/*/debug*/
 data/*/debug_inference/
 archive/
+.venv
