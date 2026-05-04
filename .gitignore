@@ -20,3 +20,4 @@ data/*/debug_inference/
 archive/
 .venv
 data2/
+data/

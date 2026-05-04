@@ -1,0 +1,22 @@
+judge_model: gpt-4.1
+bench_name: arena-hard-v2.0
+reference: null
+temperature: 0.0
+max_tokens: 16000
+
+regex_patterns:
+  - \[\[([AB<>=]+)\]\]
+  - \[([AB<>=]+)\]
+
+prompt_template: "<|User Prompt|>\n{QUESTION}\n\n<|The Start of Assistant A's Answer|>\n{ANSWER_A}\n<|The End of Assistant A's Answer|>\n\n<|The Start of Assistant B's Answer|>\n{ANSWER_B}\n<|The End of Assistant B's Answer|>"
+
+model_list:
+  - llama_3_base_8b_sft_cpo
+  - llama_3_base_8b_sft_dpo
+  - llama_3_base_8b_sft_ipo
+  - llama_3_base_8b_sft_kto
+  - llama_3_base_8b_sft_orpo
+  - llama_3_base_8b_sft_rdpo
+  - llama_3_base_8b_sft_rrhf
+  - llama_3_base_8b_sft_simpo
+  - llama_3_base_8b_sft_slic_hf

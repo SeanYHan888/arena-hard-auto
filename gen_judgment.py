@@ -160,6 +160,9 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor(max_workers=endpoint_settings["parallel"]) as executor:
         futures = []
         for model in models:
+            if model not in model_answers:
+                print(f"Warning: skipping {model} — no answer file at {answer_dir}/{model}.jsonl")
+                continue
             count = 0
             for question in questions:
                 uid = question["uid"]
