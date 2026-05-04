@@ -135,7 +135,8 @@ run_one_model_for_bench() {
   fi
 
   echo "=== Benchmark ${bench}: serving ${repo} as ${alias} ==="
-  "${VLLM_CMD[@]}" serve "${repo}" \
+  # setsid puts vLLM in its own process group so we can SIGKILL the whole tree.
+  setsid "${VLLM_CMD[@]}" serve "${repo}" \
     --served-model-name "${alias}" \
     --host 0.0.0.0 \
     --port "${PORT}" \
@@ -146,7 +147,10 @@ run_one_model_for_bench() {
   local vllm_pid="$!"
 
   cleanup() {
-    kill "${vllm_pid}" 2>/dev/null || true
+    # Kill the entire process group so engine-core/worker subprocesses release the GPU.
+    kill -TERM -- -"${vllm_pid}" 2>/dev/null || true
+    sleep 5
+    kill -KILL -- -"${vllm_pid}" 2>/dev/null || true
     wait "${vllm_pid}" 2>/dev/null || true
   }
   trap cleanup RETURN
