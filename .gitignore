@@ -19,3 +19,4 @@ data/*/model_judgment/*/debug*/
 data/*/debug_inference/
 archive/
 .venv
+data2/

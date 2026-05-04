@@ -17,6 +17,8 @@ SANITY_MIN_CHARS="${SANITY_MIN_CHARS:-16}"
 GENERATED_DIR="${GENERATED_DIR:-config/generated/simpo_llama3_base_subset}"
 LLAMA3_CHAT_TEMPLATE="${LLAMA3_CHAT_TEMPLATE:-templates/llama3_chat.jinja}"
 TRUST_REMOTE_CODE="${TRUST_REMOTE_CODE:-1}"
+# Llama-3-Base-8B-SFT-* repos omit tokenizer files; point vLLM at the canonical base.
+TOKENIZER="${TOKENIZER:-meta-llama/Meta-Llama-3-8B}"
 
 STOP_SEQUENCES='["\nuser\n", "\nassistant\n", "\nsystem\n", "<|eot_id|>", "<|im_end|>", "<|end_of_text|>", "### Instruction:"]'
 
@@ -128,6 +130,9 @@ run_one_model_for_bench() {
   if [[ -n "${LLAMA3_CHAT_TEMPLATE}" ]]; then
     extra_args+=(--chat-template "${LLAMA3_CHAT_TEMPLATE}")
   fi
+  if [[ -n "${TOKENIZER}" ]]; then
+    extra_args+=(--tokenizer "${TOKENIZER}")
+  fi
 
   echo "=== Benchmark ${bench}: serving ${repo} as ${alias} ==="
   "${VLLM_CMD[@]}" serve "${repo}" \
@@ -157,10 +162,24 @@ main() {
   mkdir -p "${GENERATED_DIR}" logs
   ensure_vllm
 
+  # Optional whitespace/comma-separated allowlist of aliases to run (e.g. MODELS="llama_3_base_8b_sft_simpo llama_3_base_8b_sft").
+  local filter="${MODELS:-}"
+  filter="${filter//,/ }"
+
   for bench in ${BENCHES}; do
     for spec in "${models[@]}"; do
       alias="${spec%%=*}"
       repo="${spec#*=}"
+      if [[ -n "${filter}" ]]; then
+        local match=0
+        for want in ${filter}; do
+          if [[ "${alias}" == "${want}" ]]; then match=1; break; fi
+        done
+        if (( match == 0 )); then
+          echo "--- skipping ${alias} (not in MODELS filter) ---"
+          continue
+        fi
+      fi
       run_one_model_for_bench "${bench}" "${alias}" "${repo}"
     done
   done
