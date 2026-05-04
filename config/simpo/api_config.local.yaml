@@ -2,11 +2,7 @@
 # Serve one checkpoint with vLLM/SGLang using the matching alias as served-model-name,
 # then run gen_answer.py with config/simpo/gen_answer_v0.1.yaml and this file.
 #
-# Defaults are conservative for Arena-Hard-v0.1 answer generation:
-# - deterministic decoding
-# - bounded generation
-# - common chat-template leakage stops
-# - answer sanitation and retry checks enabled
+# Defaults mirror the original pipeline fields consumed by gen_answer.py.
 gemma_2_9b_it_simpo:
   model: gemma_2_9b_it_simpo
   endpoints: [{api_base: "http://127.0.0.1:8000/v1", api_key: "token-abc123"}]
@@ -14,11 +10,6 @@ gemma_2_9b_it_simpo:
   parallel: 8
   max_tokens: 4096
   temperature: 0.0
-  stop: &stop_sequences ["\nuser\n", "\nassistant\n", "\nsystem\n", "<|eot_id|>", "<|im_end|>", "<|end_of_text|>", "### Instruction:"]
-  sanitize_output: true
-  sanity_check: true
-  sanity_max_retries: 2
-  sanity_min_chars: 16
 gemma_2_9b_it_dpo:
   <<: &local_defaults
     endpoints: [{api_base: "http://127.0.0.1:8000/v1", api_key: "token-abc123"}]
@@ -26,11 +17,6 @@ gemma_2_9b_it_dpo:
     parallel: 8
     max_tokens: 4096
     temperature: 0.0
-    stop: *stop_sequences
-    sanitize_output: true
-    sanity_check: true
-    sanity_max_retries: 2
-    sanity_min_chars: 16
   model: gemma_2_9b_it_dpo
 llama_3_base_8b_sft_ipo:
   <<: *local_defaults

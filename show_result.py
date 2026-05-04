@@ -1,16 +1,12 @@
 import pandas as pd
 import argparse
 import os
+import torch
 from glob import glob
 from tqdm import tqdm
 
 from utils.judge_utils import JUDGE_SETTINGS
-
-
-VALID_SCORES = {
-    "A>B", "A>>B", "A=B", "A<<B", "A<B",
-    "B>A", "B>>A", "B=A", "B<<A", "B<A",
-}
+from utils.math_utils import one_hot_encode, to_winrate_probabilities, bootstrap_pairwise_model
 
 
 def load_judgments(judge_names, benchmark, weight=3):
@@ -32,24 +28,10 @@ def load_judgments(judge_names, benchmark, weight=3):
     #     print(f"WARNING: {judge_names} is already in the data. Removing it.")
     #     data = data[~data.model.isin(judge_names)].reset_index(drop=True)
 
-    null_indices = data.games.map(
-        lambda x: (
-            x[0] is None
-            or x[1] is None
-            or x[0]["score"] is None
-            or x[1]["score"] is None
-        )
-    )
+    null_indices = data.games.map(lambda x: x[0] is None or x[1] is None or x[0]['score'] is None or x[1]['score'] is None)
     _data = data[~null_indices].reset_index(drop=True)
     
     print(f"Number of null judgments found: {len(data) - len(_data)}")
-    invalid_indices = _data.games.map(
-        lambda x: x[0]["score"] not in VALID_SCORES or x[1]["score"] not in VALID_SCORES
-    )
-    invalid_count = int(invalid_indices.sum())
-    if invalid_count:
-        print(f"Number of invalid judgments skipped: {invalid_count}")
-    _data = _data[~invalid_indices].reset_index(drop=True)
     
     # map label to score
     label_to_score = {
@@ -140,19 +122,6 @@ def print_leaderboard(battles, category):
         
 
 def print_leaderboard_with_style_features(battles, benchmark, category,control_features):        
-    try:
-        import torch
-        from utils.math_utils import (
-            one_hot_encode,
-            to_winrate_probabilities,
-            bootstrap_pairwise_model,
-        )
-    except ModuleNotFoundError as e:
-        raise ModuleNotFoundError(
-            "Style-control leaderboard requires PyTorch. Install `torch`, or rerun "
-            "without `--control-features`."
-        ) from e
-
     style_metadata = get_model_style_metadata(benchmark)
     
     model_features = battles.apply(lambda row: 
@@ -258,21 +227,15 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark", "-b", type=str, default="arena-hard-v2.0")
     parser.add_argument("--judge-names", "-j", nargs="+", default=["gpt-4.1"])
     parser.add_argument("--control-features", "-f", nargs="+", default=[])
-    parser.add_argument("--category", "-c", nargs="+", default=None)
+    parser.add_argument("--category", "-c", nargs="+", default=['hard_prompt'])
     args = parser.parse_args()
-
-    if args.category is None:
-        if args.benchmark == "arena-hard-v0.1":
-            args.category = ["arena-hard-v0.1"]
-        else:
-            args.category = ["hard_prompt"]
     
-    all_battles = load_judgments(args.judge_names, args.benchmark)
+    battles = load_judgments(args.judge_names, args.benchmark)
     
     for category in args.category:
-        assert category in all_battles.category.unique(), f"Invalid category: {category}"
+        assert category in battles.category.unique(), f"Invalid category: {category}"
         
-        battles = all_battles[all_battles.category == category].reset_index(drop=True)
+        battles = battles[battles.category == category].reset_index(drop=True)
         
         if args.control_features:
             print(f"INFO: Control features: {args.control_features}")
